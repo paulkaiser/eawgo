@@ -1,0 +1,8 @@
+export GOPATH=/Users/kaiserp/gitrepos/github.com/paulkaiser/eaw/:/Users/kaiserp/gitrepos/github.com/jcelliot/lumber
+
+# program vars
+export EAW_BOARD_X=7
+export EAW_BOARD_Y=51b
+
+# random seed for dice package
+export EAW_DICE_SEED=999983

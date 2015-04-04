@@ -1,0 +1,114 @@
+[
+  {
+    "Name": "1-Felaria",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["2-Namoria","3-Patooshia","4-Italia"]
+  },
+  {
+    "Name": "2-Namoria",
+    "Owner": {
+      "Name":""
+    },
+	"AttackVectors":["3-Patooshia","4-Italia","5-Canadia"]
+  },
+  {
+    "Name": "3-Patooshia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["4-Italia","5-Canadia","6-Usainia"]
+  },
+  {
+    "Name": "4-Italia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["5-Canadia","6-Usainia","7-Nosensica"]
+  },
+  {
+    "Name": "5-Canadia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["6-Usainia","7-Nosensica","8-Stupidia"]
+  },
+  {
+    "Name": "6-Usainia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["7-Nosensica","8-Stupidia","9-Fuducia"]
+  },
+  {
+    "Name": "7-Nosensica",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["8-Stupidia","9-Fuducia","10-Pizzaria"]
+  },
+  {
+    "Name": "8-Stupidia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["9-Fuducia","10-Pizzaria","11-Hambergia"]
+  },
+  {
+    "Name": "9-Fuducia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["10-Pizzaria","11-Hambergia","12-Havbeiria"]
+  },
+  {
+    "Name": "10-Pizzaria",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["11-Hambergia","12-Havbeiria","13-Arkansia"]
+  },
+  {
+    "Name": "11-Hambergia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["12-Havbeiria","13-Arkansia","14-Roosochia"]
+  },
+  {
+    "Name": "12-Havbeiria",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["13-Arkansia","14-Roosochia","15-Nipponia"]
+  },
+  {
+    "Name": "13-Arkansia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["14-Roosochia","15-Nipponia","16-Sinonia"]
+  },
+  {
+    "Name": "14-Roosochia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["15-Nipponia","16-Sinonia","1-Felaria"]
+  },
+  {
+    "Name": "15-Nipponia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["16-Sinonia","1-Felaria","2-Namoria"]
+  },
+  {
+    "Name": "16-Sinonia",
+    "Owner": {
+      "Name": ""
+    },
+	"AttackVectors":["1-Felaria","2-Namoria","3-Patooshia"]
+  }
+]
