@@ -1,4 +1,4 @@
-export GOPATH=/Users/kaiserp/gitrepos/github.com/paulkaiser/eaw/:/Users/kaiserp/gitrepos/github.com/jcelliot/lumber
+export GOPATH=/Users/kaiserp/repositories/github.com/paulkaiser/eawgo
 
 # program vars
 export EAW_BOARD_X=7
