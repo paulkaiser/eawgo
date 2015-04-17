@@ -104,6 +104,16 @@ TBD
 #### Let a player withdraw from the game
 TBD
 
+### Restructured Initialization
+Game initialization needs to be restructured in order to simplify evolving to a server-centric model.
+
+#### Ability to create a game on a request by the first player
+#### Ability to expose list of active games
+#### Ability to add players to a game that has not yet started
+#### Ability for game to stop accepting new players
+#### Ability to start main game loop once game is not accepting new players
+
+
 ### Game server
 #### Core game encapsulation
 Build a socket-based server that encapsulates an instance of the core game. The goal is to let the remote client application initiate games, enlist players and start a game. The core game must be able to run without the game server using whatever user interaction facilitities inherent in the core. 
