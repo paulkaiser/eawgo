@@ -38,9 +38,6 @@ May need to have main game thread control whether a new round is started (requir
 ## Backlog
 ### Core game 
 
-#### Add territory state to UX sequence
-After each attack, write the outcome to the console and show the current state of territory ownership before prompting "Do you want to attack?"
-
 #### Improve randomness of dice rolls
 Currently, the dice package seeds the random number generator using a value from the environment or a simple default value. The apparent randomness can be improved by using a variation of clock values to form the seed.
 
@@ -112,6 +109,23 @@ Game initialization needs to be restructured in order to simplify evolving to a 
 #### Ability to add players to a game that has not yet started
 #### Ability for game to stop accepting new players
 #### Ability to start main game loop once game is not accepting new players
+
+### Refactor game package
+Most nof the functions in the game package have to become methods, such that they operate on a specific instance of a running game.
+
+####  Change package functions into methods
+Change the following functions into methods that operate on a Game object.
+
+#### Make territories private to each game instances
+A game needs a private list of territories and a territory map.
+
+#### Segregate data structures into data.go
+
+#### Divide functions into different code files
+territory.go gets all territory loading functions/methods (and archives obsolete territory functions)
+turn.go gets all functions/methods that operate at the game turn or play level
+controller.go should be left with functions/methods that help initialize and control the game.
+
 
 
 ### Game server
