@@ -101,14 +101,7 @@ TBD
 #### Let a player withdraw from the game
 TBD
 
-### Restructured Initialization
-Game initialization needs to be restructured in order to simplify evolving to a server-centric model.
 
-#### Ability to create a game on a request by the first player
-#### Ability to expose list of active games
-#### Ability to add players to a game that has not yet started
-#### Ability for game to stop accepting new players
-#### Ability to start main game loop once game is not accepting new players
 
 ### Refactor game package
 Most nof the functions in the game package have to become methods, such that they operate on a specific instance of a running game.
@@ -116,15 +109,88 @@ Most nof the functions in the game package have to become methods, such that the
 ####  Change package functions into methods
 Change the following functions into methods that operate on a Game object.
 
+The statement "no change" implies only the changes needed to control access scope are required.
+
+In controller.go
+
+* func (g Game) InitializeGame() - no args; assume state is a just-created Game object; load territories; assign territories
+* func (g Game) GetCurrentPlayer() Player - no functional change
+* func (g Game) AssignTerritories() - no functional change
+* func (g Game) StartGame() - new; starts the game; confirms start of round; calls ExecuteRound
+* func (g Game) ExecuteRound() - no functional change
+* func (g Game) StartTurn() - no functional change
+* func (g Game) beginAttackSequence() - no functional change
+* func (g Game) EndTurn() - no change
+* func (g Game) nextPlayer() - no change
+* func (g Game) ExecutePlay() - no change
+* func (g Game) SelectAttackingTerritory() - no change
+* func (g Game) SelectDefendingTerritory() - no change
+* func (g Game) PrintTurns() - no change
+
+Put "nextPlayerIndex" into Game structure
+
+
+In game.go
+
+Remove "territories" variable.
+
+* func (g Game) LoadTerritories() - no change
+* func (g Game) MapTerritories() - no change
+* func (g Game) generateAttackVectors() - no change
+* func (t []Territory) PrintTerritories() - no change
+* func (t []Territory) printTerritories() - no change
+* func (t []Territory) logTerritories() - no change
+* func (g Game) SaveTerritories() - no change
+
+
+In player.go,
+
+* func (g Game) ConfirmAllPlayers() - no change
+* func (g Game) PutMessageAllPlayers() - no change
+
+
 #### Make territories private to each game instances
 A game needs a private list of territories and a territory map.
 
 #### Segregate data structures into data.go
 
+
 #### Divide functions into different code files
 territory.go gets all territory loading functions/methods (and archives obsolete territory functions)
 turn.go gets all functions/methods that operate at the game turn or play level
-controller.go should be left with functions/methods that help initialize and control the game.
+controller.go should be left with functions/methods that help create, initialize, find and control the game.
+
+
+
+### Restructured Initialization
+Game initialization needs to be restructured in order to simplify evolving to a server-centric model.
+
+#### Ability to create a game on a request by the first player
+The controller should have a GetNewGame() function that returns a new, initialized Game object. This should load and post-process the territories, add the first player (as the owner if needed) and be ready to accept additional players.
+
+#### Ability to expose list of active games
+The controller should have a ListGames() function. 
+
+May not be needed initially.
+
+
+#### Ability to add players to a game that has not yet started
+The controller should have a Game method that can add another player to a game that has not yet started.
+
+
+#### Ability for game to stop accepting new players
+The act of "stop accepting new players" is the set a flag that the game has started play.
+
+The controller should have a Game method that: 1) sets a "game started" flag, 2) assign territories to the players, 3) start the main loop in a goroutine.
+
+This work could also be done in the main game loop. If so, the Game method in the controller should simply start the main loop goroutine.
+
+
+#### Ability to start main game loop once game is not accepting new players
+The controller should have a Game method that can run as a goroutine that continues to run rrounds until one or more of the players wants to stop.
+
+It probably does not matter whether the main loop does some of the final setup work or it happens in a different Game method that starts the main loop goroutine.
+
 
 
 
