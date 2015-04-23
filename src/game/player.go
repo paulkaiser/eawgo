@@ -30,13 +30,13 @@ func (p Player) Confirm(msg string, def string) bool {
 	return ans
 }
 
-func ConfirmAllPlayers(msg string, def string) bool {
+func (g Game) ConfirmAllPlayers(msg string, def string) bool {
 	
-	confirmedAll := make([] bool, len(players))
+	confirmedAll := make([] bool, len(g.Players))
 	
 	// Since this is intended to poll all players, do not short-circuit.
-	for i := range players {
-		confirmedAll[i] = players[i].Confirm(msg, def)
+	for i := range g.Players {
+		confirmedAll[i] = g.Players[i].Confirm(msg, def)
 	}
 
 	var confirmed bool = true
@@ -82,18 +82,18 @@ func (p Player) PutMessage(msg string) {
 }
 
 // broadcast a message such that all players will "see" it
-func PutMessageAllPlayers(msg string)  {
+func (g Game) PutMessageAllPlayers(msg string)  {
 	
 	if sharedConsole {
 		
 		// Since only one console is in use, use player 1 console
-		players[0].PutMessage(msg)
+		g.Players[0].PutMessage(msg)
 		
 	} else {
 	
 		// Since this is intended to reach all players, do not short-circuit.
-		for i := range players {
-			players[i].PutMessage(msg)
+		for i := range g.Players {
+			g.Players[i].PutMessage(msg)
 		}
 	}
 }

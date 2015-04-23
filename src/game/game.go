@@ -33,27 +33,27 @@ func (t Territory) ShortDescription() string {
 var once sync.Once
 
 // stores territories
-var territories []Territory
+// var territories []Territory
 
 // indexes territories by Name
-var terrMap map[string] *Territory
+// var terrMap map[string] *Territory
 
-func GetTerritories() []Territory {
-	return territories
+func (g Game) GetTerritories() []Territory {
+	return g.Territories
 }
-func PrintTerritories() {
-	logTerritories()
-	printTerritories()
+func (g Game) PrintTerritories() {
+	logTerritories(g.GetTerritories())
+	g.printTerritories()
 }
 
-func printTerritories() {
+func (g Game) printTerritories() {
 	util.Mainlog.Println("game.printTerritories()")
 	
-	for i := 0; i < len(territories); i++ {
-		PutMessageAllPlayers("Territory: " + territories[i].ShortDescription() + "\n")
+	for i := 0; i < len(g.GetTerritories()); i++ {
+		g.PutMessageAllPlayers("Territory: " + g.GetTerritories()[i].ShortDescription() + "\n")
 	}
 }
-func logTerritories() {
+func logTerritories(territories []Territory) {
 	util.Mainlog.Println("game.logTerritories()")
 	
 	for i := 0; i < len(territories); i++ {
@@ -61,7 +61,7 @@ func logTerritories() {
 	}
 }
 
-func LoadTerritories(filename string) []Territory {
+func (g Game) LoadTerritories(filename string) []Territory {
 	util.Mainlog.Println("game.LoadTerritories(",filename,")")
 	
 	b, err := ioutil.ReadFile(filename)
@@ -74,39 +74,39 @@ func LoadTerritories(filename string) []Territory {
 		panic(err)
 	}
 	// util.Mainlog.Println("terr:",territories)
-	mapTerritories()
-	generateAttackVectors()
+	g.mapTerritories()
+	g.generateAttackVectors()
 	return territories
 }
 
-func mapTerritories() {
-	terrMap = make(map[string] *Territory)
-	for i := 0; i < len(territories); i++ {
-		terrMap[territories[i].Name] = &territories[i]
+func (g Game) mapTerritories() {
+	g.TerrMap = make(map[string] *Territory)
+	for i := 0; i < len(g.Territories); i++ {
+		terrMap[g.Territories[i].Name] = &g.Territories[i]
 	}
 	
-	util.Mainlog.Println("terrMap:", terrMap)
+	util.Mainlog.Println("terrMap:", g.TerrMap)
 }
 
 // Take the array of string AttackVectors and
 // convert it to the array of *Territory AttackVectorRefs
-func generateAttackVectors() {
+func (g Game) generateAttackVectors() {
 
-	for i := 0; i < len(territories); i++ {
-		territories[i].AttackVectorRefs = make([] *Territory, len(territories[i].AttackVectors))
-		for j := 0; j < len(territories[i].AttackVectors); j++ {
-			territories[i].AttackVectorRefs[j] = terrMap[territories[i].AttackVectors[j]]
+	for i := 0; i < len(g.Territories); i++ {
+		g.Territories[i].AttackVectorRefs = make([] *Territory, len(g.Territories[i].AttackVectors))
+		for j := 0; j < len(g.Territories[i].AttackVectors); j++ {
+			g.Territories[i].AttackVectorRefs[j] = g.TerrMap[g.Territories[i].AttackVectors[j]]
 		}
 	}
-	util.Mainlog.Println("terr:",territories)
+	util.Mainlog.Println("terr:",g.Territories)
 }
 
 //
-func SaveTerritories(filename string) {
-	util.Mainlog.Println("game.LoadTerritories(",filename,")")
+func (g Game) SaveTerritories(filename string) {
+	util.Mainlog.Println("game.SaveTerritories(",filename,")")
 	
 	// save list of territories in JSON format
-	terr := territories
+	terr := g.GetTerritories()
 	b, err := json.Marshal(terr)
 	if err != nil {
 		panic(err)

@@ -114,39 +114,39 @@ The statement "no change" implies only the changes needed to control access scop
 In controller.go
 
 * func (g Game) InitializeGame() - no args; assume state is a just-created Game object; load territories; assign territories
-* func (g Game) GetCurrentPlayer() Player - no functional change
-* func (g Game) AssignTerritories() - no functional change
+* [done] func (g Game) GetCurrentPlayer() Player - no functional change
+* [done] func (g Game) AssignTerritories() - no functional change
 * func (g Game) StartGame() - new; starts the game; confirms start of round; calls ExecuteRound
-* func (g Game) ExecuteRound() - no functional change
-* func (g Game) StartTurn() - no functional change
-* func (g Game) beginAttackSequence() - no functional change
-* func (g Game) EndTurn() - no change
-* func (g Game) nextPlayer() - no change
-* func (g Game) ExecutePlay() - no change
-* func (g Game) SelectAttackingTerritory() - no change
-* func (g Game) SelectDefendingTerritory() - no change
-* func (g Game) PrintTurns() - no change
+* [done] func (g Game) ExecuteRound() - no functional change
+* [done] func (g Game) StartTurn() - no functional change
+* [done] func (g Game) beginAttackSequence() - no functional change
+* [done] func (g Game) EndTurn() - no change
+* [done] func (g Game) nextPlayer() - no change
+* [done] func (g Game) ExecutePlay() - no change
+* [done] func (g Game) SelectAttackingTerritory() - no change
+* [done] func (g Game) SelectDefendingTerritory() - no change
+* [done] func (g Game) PrintTurns() - no change
 
-Put "nextPlayerIndex" into Game structure
+[done] Put "nextPlayerIndex" into Game structure
 
 
 In game.go
 
-Remove "territories" variable.
+[done] Remove "territories" variable.
 
-* func (g Game) LoadTerritories() - no change
-* func (g Game) MapTerritories() - no change
-* func (g Game) generateAttackVectors() - no change
-* func (t []Territory) PrintTerritories() - no change
-* func (t []Territory) printTerritories() - no change
-* func (t []Territory) logTerritories() - no change
-* func (g Game) SaveTerritories() - no change
+* [done] func (g Game) LoadTerritories() - no change
+* [done] func (g Game) MapTerritories() - no change
+* [done] func (g Game) generateAttackVectors() - no change
+* [done] func (g Game) PrintTerritories() - no change
+* [done] func (g Game) printTerritories() - no change
+* [done] func (t []Territory) logTerritories() - no change
+* [done] func (g Game) SaveTerritories() - no change
 
 
 In player.go,
 
-* func (g Game) ConfirmAllPlayers() - no change
-* func (g Game) PutMessageAllPlayers() - no change
+* [done] func (g Game) ConfirmAllPlayers() - no change
+* [done] func (g Game) PutMessageAllPlayers() - no change
 
 
 #### Make territories private to each game instances

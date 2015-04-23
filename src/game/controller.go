@@ -10,12 +10,15 @@ import (
 	"strings"
 )
 
-type game struct {
-	id string
-	players []Player
-	turns *list.List
-	currentPlayer Player
-	playSequenceSource int
+type Game struct {
+	Id string
+	Players []Player
+	Turns *list.List
+	CurrentPlayer Player
+	Territories []Territory
+	TerrMap map[string] *Territory
+	PlaySequenceSource int
+	nextPlayerIndex int
 }
 
 type play struct {
@@ -39,7 +42,7 @@ type turn struct {
 	streak int
 }
 
-var games map[string] *game
+var games map[string] *Game
 
 var players []Player
 var turns *list.List
@@ -47,8 +50,8 @@ var currentPlayer Player
 var playSequenceSource int
 var sharedConsole bool
 
-func GetCurrentPlayer() Player {
-	return currentPlayer
+func (g Game) GetCurrentPlayer() Player {
+	return g.CurrentPlayer
 }
 
 func InitializeGame(numPlayers int) {
@@ -87,9 +90,9 @@ func InitializeGame(numPlayers int) {
 
 // Assign territories sequentially 
 // TODO this needs to become SelectTerritory such that the players get to pick
-func AssignTerritories() {
+func (g Game) AssignTerritories() {
 	util.Mainlog.Println("game.AssignTerritories()")
-	terr := GetTerritories()
+	terr := g.Territories
 	
 	var j = 0
 	for i := range terr {
@@ -103,85 +106,85 @@ func AssignTerritories() {
 	}
 }
 
-func ExecuteRound() {
+func (g Game) ExecuteRound() {
 	
-	for pn := 0; pn < len(players); pn++ {
+	for pn := 0; pn < len(g.Players); pn++ {
 		// start next player turn
-		StartTurn()
-		for beginAttackSequence() {
-			if (ExecutePlay() < 0) {
+		g.StartTurn()
+		for g.beginAttackSequence() {
+			if (g.ExecutePlay() < 0) {
 				break
 			}
 		}
-		EndTurn()
+		g.EndTurn()
 	}
 }
 
-func beginAttackSequence() bool {
-	printTerritories()
-	return GetCurrentPlayer().Confirm("Do you want to attack?", "y")
+func (g Game) beginAttackSequence() bool {
+	g.Territories.printTerritories()
+	return g.GetCurrentPlayer().Confirm("Do you want to attack?", "y")
 }
 
 // Initialize a new turn for the next player
-func StartTurn() {
+func (g Game) StartTurn() {
 	util.Mainlog.Println("game.StartTurn()")
-	nextPlayer()
-	util.Mainlog.Println("Starting turn for ", currentPlayer)
-	PutMessageAllPlayers("Starting turn for " + currentPlayer.Name + "\n")
+	g.nextPlayer()
+	util.Mainlog.Println("Starting turn for ", g.GetCurrentPlayer())
+	g.PutMessageAllPlayers("Starting turn for " + g.GetCurrentPlayer().Name + "\n")
 	
-	t := turn{currentPlayer, list.New(), 0, 0, 0}
-	turns.PushBack(&t)
+	t := turn{g.GetCurrentPlayer(), list.New(), 0, 0, 0}
+	g.Turns.PushBack(&t)
 }
 
-func EndTurn() {
+func (g Game) EndTurn() {
 
 	util.Mainlog.Println("game.EndTurn()")
-	PutMessageAllPlayers("Ending turn for " + currentPlayer.Name + "\n")
+	g.PutMessageAllPlayers("Ending turn for " + currentPlayer.Name + "\n")
 }
 
 // TODO make players into a ring
 // FIXME it should return the next player instead of relying on module var
-var nextPlayerIndex = 0
-func nextPlayer() {
+// var nextPlayerIndex = 0
+func (g Game) nextPlayer() {
 	util.Mainlog.Println("game.nextPlayer()")
-	currentPlayer = players[nextPlayerIndex]
-	nextPlayerIndex++
-	if (nextPlayerIndex == len(players)) {
-		nextPlayerIndex = 0
+	g.CurrentPlayer = g.Players[nextPlayerIndex]
+	g.NextPlayerIndex++
+	if (g.NextPlayerIndex == len(g.Players)) {
+		g.NextPlayerIndex = 0
 	}
 }
 
 // execute all aspects of one play cycle of the current turn
 // return -1 to force end of turn, otherwise return 0
-func ExecutePlay() int {
+func (g Game) ExecutePlay() int {
 	util.Mainlog.Println("game.ExecutePlay()")
 	
 	// get the current turn from end of turn list
-	currTurn := turns.Back().Value.(*turn)
+	currTurn := g.Turns.Back().Value.(*turn)
 	util.Mainlog.Println("currTurn: ", currTurn)
 	
 	// create a new play
 	var p = play{}
 	
 	// assign a sequence number
-	playSequenceSource++  // this will need sync'ing in multi-threaded world
-	p.sequence = playSequenceSource
+	g.PlaySequenceSource++  // this will need sync'ing in multi-threaded world
+	p.sequence = g.PlaySequenceSource
 	
 
 	var pDefendTerr *Territory
 	var err error
 	for {
 		// get the attacking territory
-		p.attackFrom = SelectAttackingTerritory()
+		p.attackFrom = g.SelectAttackingTerritory()
 		// TODO check for zero-value territory.
 		
 		// get the defending territory
-		pDefendTerr, err = SelectDefendingTerritory(p.attackFrom)
+		pDefendTerr, err = g.SelectDefendingTerritory(p.attackFrom)
 		if (err == nil) {
 			p.attackTo = *pDefendTerr
 			break
 		} else {
-			currentPlayer.PutMessage(err.Error() + "\n")
+			g.GetCurrentPlayer().PutMessage(err.Error() + "\n")
 		}
 	}
 	
@@ -194,13 +197,13 @@ func ExecutePlay() int {
 	// roll the die/dice for the defender
 	p.defenderRoll = util.Roll()
 	
-	PutMessageAllPlayers(fmt.Sprintf("Attacker rolled %d, defender rolled %d \n", p.attackerRoll, p.defenderRoll))
+	g.PutMessageAllPlayers(fmt.Sprintf("Attacker rolled %d, defender rolled %d \n", p.attackerRoll, p.defenderRoll))
 	
 	
 	// determine outcome (win/loss (ties go to defender))
 	if (p.attackerRoll > p.defenderRoll) {
 		// Current player wins
-		PutMessageAllPlayers("Attacker wins!\n")
+		g.PutMessageAllPlayers("Attacker wins!\n")
 		p.attackerWin = true
 		pDefendTerr.Owner = currTurn.attacker
 
@@ -213,7 +216,7 @@ func ExecutePlay() int {
 
 	} else {
 		// Current player loses
-		PutMessageAllPlayers("Defender wins!\n")
+		g.PutMessageAllPlayers("Defender wins!\n")
 		currTurn.nbrLosses++
 		if (currTurn.streak > 0) {
 			currTurn.streak = -1
@@ -225,10 +228,10 @@ func ExecutePlay() int {
 	util.Mainlog.Println("game.executePlay() p:", p)
 	
 	if (currTurn.nbrLosses == 3) {
-		PutMessageAllPlayers("That was the third loss in the turn.\n")
+		g.PutMessageAllPlayers("That was the third loss in the turn.\n")
 		return -1
 	} else if (currTurn.streak == -2) {
-		PutMessageAllPlayers("Two losses in a row. Too bad.\n")
+		g.PutMessageAllPlayers("Two losses in a row. Too bad.\n")
 		return -1
 	} else {
 		return 0
@@ -237,10 +240,10 @@ func ExecutePlay() int {
 
 // Let the current player select the attacking territory
 // from the set of territories owned by the current player
-func SelectAttackingTerritory() Territory {
+func (g Game) SelectAttackingTerritory() Territory {
 
 	util.Mainlog.Println("game.SelectAttackingTerritory()")
-	terr := GetTerritories()
+	terr := g.Territories
 	var terrIndex int
 	var idxMap[] int
 	
@@ -254,9 +257,9 @@ func SelectAttackingTerritory() Territory {
 		promptArray = make([]string,25)
 	
 		j := 0
-		promptArray[j] = fmt.Sprintln("List of territories owned by",currentPlayer.Name)
+		promptArray[j] = fmt.Sprintln("List of territories owned by", g.GetCurrentPlayer().Name)
 		for i := 0; i < len(terr); i++ {
-			if (terr[i].Owner == currentPlayer) {
+			if (terr[i].Owner == g.GetCurrentPlayer()) {
 				j++
 				idxMap[j] = i
 				promptArray[j+1] = fmt.Sprintf("%d) %s\n", j, terr[i].Name)
@@ -264,14 +267,14 @@ func SelectAttackingTerritory() Territory {
 		}
 
 		joined := strings.Join(promptArray, "")
-		currentPlayer.PutMessage(joined)
-		terrIndex = currentPlayer.ReadInt("Select attacking territory: ", 1)
+		g.GetCurrentPlayer().PutMessage(joined)
+		terrIndex = g.GetCurrentPlayer().ReadInt("Select attacking territory: ", 1)
 	
 		// TODO don't panic, write error message and prompt again
 		if (terrIndex <= j) {
 			break
 		} else {
-			currentPlayer.PutMessage(fmt.Sprintf("Invalid entry (%d). Please retry.\n",terrIndex))
+			g.GetCurrentPlayer().PutMessage(fmt.Sprintf("Invalid entry (%d). Please retry.\n",terrIndex))
 		}
 
 	}
@@ -289,10 +292,10 @@ func SelectAttackingTerritory() Territory {
 // Let the current player select the defending territory
 // from the set of territories adjacent to the attacking territory
 // NOT owned by the current player.
-func SelectDefendingTerritory(attackingTerr Territory) (*Territory, error) {
+func (g Game) SelectDefendingTerritory(attackingTerr Territory) (*Territory, error) {
 
 	util.Mainlog.Println("game.SelectDefendingTerritory()")
-	terr := GetTerritories()
+	terr := g.Territories
 	idxMap := make([] int, len(terr))
 	
 	var promptArray []string
@@ -301,7 +304,7 @@ func SelectDefendingTerritory(attackingTerr Territory) (*Territory, error) {
 	j := 0
 	promptArray[j] = fmt.Sprintln("List of territories attackable from",attackingTerr.Name)
 	for i := 0; i < len(attackingTerr.AttackVectorRefs); i++ {
-		if (attackingTerr.AttackVectorRefs[i].Owner != currentPlayer) {
+		if (attackingTerr.AttackVectorRefs[i].Owner != g.GetCurrentPlayer()) {
 			j++
 			idxMap[j] = i
 			promptArray[j+1] = fmt.Sprintf("%d) %s (%s)\n", j, attackingTerr.AttackVectorRefs[i].Name, attackingTerr.AttackVectorRefs[i].Owner.Name)
@@ -315,8 +318,8 @@ func SelectDefendingTerritory(attackingTerr Territory) (*Territory, error) {
 
 	joined := strings.Join(promptArray, "")
 	// fmt.Println(joined)
-	currentPlayer.PutMessage(joined)
-	terrIndex := currentPlayer.ReadInt("Select territory to attack: ", 1)
+	g.GetCurrentPlayer().PutMessage(joined)
+	terrIndex := g.GetCurrentPlayer().ReadInt("Select territory to attack: ", 1)
 
 	// TODO don't panic, write error message and prompt again
 	if (terrIndex > j) {
@@ -329,10 +332,10 @@ func SelectDefendingTerritory(attackingTerr Territory) (*Territory, error) {
 }
 
 
-func PrintTurns() {
+func (g Game) PrintTurns() {
 	util.Mainlog.Println("game.PrintTurns()")
 		
-	for et := turns.Front(); et != nil; et = et.Next() {
+	for et := g.Turns.Front(); et != nil; et = et.Next() {
 		t := et.Value.(*turn)
 		util.Mainlog.Println("t:",t)
 		
