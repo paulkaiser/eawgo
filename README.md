@@ -150,7 +150,7 @@ In player.go,
 
 
 #### Make territories private to each game instances
-A game needs a private list of territories and a territory map.
+[done] A game needs a private list of territories and a territory map.
 
 #### Segregate data structures into data.go
 

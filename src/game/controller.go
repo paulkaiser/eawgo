@@ -10,15 +10,20 @@ import (
 	"strings"
 )
 
+// the maximum number of players the game will allow
+var maxNumberOfPlayers = 5
+
 type Game struct {
 	Id string
-	Players []Player
+	Players []Player // this will be sized to the maximum number of players supported.
+	NumPlayers int // this could be the limit for determining the wrapping of nextPlayerIndex
 	Turns *list.List
 	CurrentPlayer Player
 	Territories []Territory
 	TerrMap map[string] *Territory
 	PlaySequenceSource int
 	nextPlayerIndex int
+	sharedConsole bool
 }
 
 type play struct {
@@ -50,29 +55,71 @@ var currentPlayer Player
 var playSequenceSource int
 var sharedConsole bool
 
+var gameIdSeq int = 0
+
 func (g Game) GetCurrentPlayer() Player {
 	return g.CurrentPlayer
 }
 
-func InitializeGame(numPlayers int) {
+
+func NewGame() *Game {
+
+	// generate a game ID
+	gameIdSeq++
+	
+	// set game ID
+	var g Game
+	g = make(Game)
+	g.Id = strconv.Itoa(gameIdSeq)
+	
+	g.Players = make([]Player, maxNumberOfPlayers)
+	g.NumPlayers = 0
+	
+	// add to game map
+	games[g.Id] = &g
+	return &g
+}
+
+func (g Game) AddPlayer(name string) {
+	
+	// TODO if g.NumPlayers == maxNumberOfPlayers, we throw an error
+	if (g.NumPlayers == maxNumberOfPlayers) {
+		util.Mainlog.Println("game.AddPlayer(): game is full of players")
+		return
+	}
+	
+	i := g.NumPlayers
+	g.NumPlayers++
+	
+	g.Players[i].UserChan = util.CreateUserChannel()
+	// start the goroutine to communicate with this player
+	go util.ConsoleChannelIO(g.Players[i].UserChan)
+	
+	g.Players[i] = name
+	return
+}
+
+
+
+func (g Game) InitializeGame() {
 	util.Mainlog.Println("game.InitializeGame()")
 
 	// indicate there is only one console being used
-	sharedConsole = true
+	g.sharedConsole = false
 	
 	// initialize players
-	players = make([]Player, numPlayers)
+	// players = make([]Player, numPlayers)
 	
-	for i := 0; i < numPlayers; i++ {
-		players[i].UserChan = util.CreateUserChannel()
-		// start the goroutine to communicate with this player
-		go util.ConsoleChannelIO(players[i].UserChan)
-	}
-	
-	for i := 0; i < numPlayers; i++ {
-		// TODO Add prompting for each player's name.
-		players[i].Name = "Player " + strconv.Itoa(i+1)
-	}
+	// for i := 0; i < g.NumPlayers; i++ {
+	// 	players[i].UserChan = util.CreateUserChannel()
+	// 	// start the goroutine to communicate with this player
+	// 	go util.ConsoleChannelIO(players[i].UserChan)
+	// }
+	//
+	// for i := 0; i < numPlayers; i++ {
+	// 	// TODO Add prompting for each player's name.
+	// 	players[i].Name = "Player " + strconv.Itoa(i+1)
+	// }
 
 	util.Mainlog.Println("players: ", players)
 	
