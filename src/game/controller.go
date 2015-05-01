@@ -47,13 +47,13 @@ type turn struct {
 	streak int
 }
 
-var games map[string] *Game
+var games map[string] *Game = make(map[string] *Game)
 
-var players []Player
-var turns *list.List
-var currentPlayer Player
-var playSequenceSource int
-var sharedConsole bool
+// var players []Player
+// var turns *list.List
+// var currentPlayer Player
+// var playSequenceSource int
+// var sharedConsole bool
 
 var gameIdSeq int = 0
 
@@ -69,7 +69,7 @@ func NewGame() *Game {
 	
 	// set game ID
 	var g Game
-	g = make(Game)
+	g = Game{}
 	g.Id = strconv.Itoa(gameIdSeq)
 	
 	g.Players = make([]Player, maxNumberOfPlayers)
@@ -95,7 +95,7 @@ func (g Game) AddPlayer(name string) {
 	// start the goroutine to communicate with this player
 	go util.ConsoleChannelIO(g.Players[i].UserChan)
 	
-	g.Players[i] = name
+	g.Players[i].Name = name
 	return
 }
 
@@ -105,7 +105,7 @@ func (g Game) InitializeGame() {
 	util.Mainlog.Println("game.InitializeGame()")
 
 	// indicate there is only one console being used
-	g.sharedConsole = false
+	g.sharedConsole = true
 	
 	// initialize players
 	// players = make([]Player, numPlayers)
@@ -121,15 +121,20 @@ func (g Game) InitializeGame() {
 	// 	players[i].Name = "Player " + strconv.Itoa(i+1)
 	// }
 
-	util.Mainlog.Println("players: ", players)
+	util.Mainlog.Println("players: ", g.Players)
 	
 	
 	// Initialize board - getting the board the first time initializes it
-	terr := LoadTerritories("./etc/terr-in2.json")
+	terr := g.LoadTerritories("./etc/terr-in2.json")
 	util.Mainlog.Println("Board has", len(terr), "territories")
 	
+	g.AssignTerritories()
+	
+	g.PrintTerritories()
+	
 	// Initialize turns
-	turns = list.New()
+	g.Turns = list.New()
+
 	// util.Mainlog.Println("turns: ", turns)
 	
 	util.Init()
@@ -144,13 +149,31 @@ func (g Game) AssignTerritories() {
 	var j = 0
 	for i := range terr {
 		// body
-		terr[i].Owner = players[j]
+		terr[i].Owner = g.Players[j]
 		j++
-		if j == len(players) {
+		if j == g.NumPlayers {
 			j = 0
 		}
 		
 	}
+}
+
+func (g Game) RunGame() {
+	
+	util.Mainlog.Println("game.RunGame()")
+	util.Mainlog.Println("Running game", g)
+	
+	for g.ConfirmAllPlayers("Start round?", "n") {
+		g.ExecuteRound()
+	}
+
+	// document turns
+	g.PrintTurns()
+
+	// show final holdings
+	g.PrintTerritories()
+	
+	
 }
 
 func (g Game) ExecuteRound() {
@@ -168,7 +191,7 @@ func (g Game) ExecuteRound() {
 }
 
 func (g Game) beginAttackSequence() bool {
-	g.Territories.printTerritories()
+	g.printTerritories()
 	return g.GetCurrentPlayer().Confirm("Do you want to attack?", "y")
 }
 
@@ -186,7 +209,7 @@ func (g Game) StartTurn() {
 func (g Game) EndTurn() {
 
 	util.Mainlog.Println("game.EndTurn()")
-	g.PutMessageAllPlayers("Ending turn for " + currentPlayer.Name + "\n")
+	g.PutMessageAllPlayers("Ending turn for " + g.CurrentPlayer.Name + "\n")
 }
 
 // TODO make players into a ring
@@ -194,10 +217,10 @@ func (g Game) EndTurn() {
 // var nextPlayerIndex = 0
 func (g Game) nextPlayer() {
 	util.Mainlog.Println("game.nextPlayer()")
-	g.CurrentPlayer = g.Players[nextPlayerIndex]
-	g.NextPlayerIndex++
-	if (g.NextPlayerIndex == len(g.Players)) {
-		g.NextPlayerIndex = 0
+	g.CurrentPlayer = g.Players[g.nextPlayerIndex]
+	g.nextPlayerIndex++
+	if (g.nextPlayerIndex == len(g.Players)) {
+		g.nextPlayerIndex = 0
 	}
 }
 

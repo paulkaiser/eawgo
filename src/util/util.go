@@ -64,7 +64,8 @@ func GetChannelString(ch MessageChannel, msg string, def string) string {
 	cm.messageTypeCode = MSG_TYPE_REQ
 	cm.promptText = msg
 	cm.defaultText = def
-	// util.Mainlog.Println("cm=",cm)
+	// Mainlog.Println("ch=",ch)
+	// Mainlog.Println("cm=",cm)
 	// convert after channel interaction
 	ch <- cm
 	cm = <-ch

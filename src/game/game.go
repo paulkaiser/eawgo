@@ -69,20 +69,20 @@ func (g Game) LoadTerritories(filename string) []Territory {
 		panic(err)
 	}
 	
-	err = json.Unmarshal(b, &territories)
+	err = json.Unmarshal(b, &g.Territories)
 	if (err != nil) {
 		panic(err)
 	}
 	// util.Mainlog.Println("terr:",territories)
 	g.mapTerritories()
 	g.generateAttackVectors()
-	return territories
+	return g.Territories
 }
 
 func (g Game) mapTerritories() {
 	g.TerrMap = make(map[string] *Territory)
 	for i := 0; i < len(g.Territories); i++ {
-		terrMap[g.Territories[i].Name] = &g.Territories[i]
+		g.TerrMap[g.Territories[i].Name] = &g.Territories[i]
 	}
 	
 	util.Mainlog.Println("terrMap:", g.TerrMap)

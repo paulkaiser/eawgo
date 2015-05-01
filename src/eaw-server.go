@@ -52,27 +52,23 @@ func main() {
 
 	logFlags := log.Ldate | log.Lmicroseconds | log.Lshortfile
 	log.SetFlags(logFlags)
-	log.Println("Start eaw")
-	
-	nbrPlayers := ReadInt("Number of players", 2)
-	
-	game.InitializeGame(nbrPlayers)
-	game.AssignTerritories()
-	
-	// show initial holdings
-	game.PrintTerritories()
-	
-	// TODO this needs to poll all players and confirm that all want to continue
-	for game.ConfirmAllPlayers("Start round?", "n") {
-		game.ExecuteRound()
-	}
+	log.Println("Start eaw-server [test]")
 
-	// document turns
-	game.PrintTurns()
-
-	// show final holdings
-	game.PrintTerritories()
-
+	// client calls to create new game
+	var g *game.Game
+	g = game.NewGame()
+	g.AddPlayer("Player 1")
+	// return game ID to caller
+	
+	// client calls to join game using ID
+	g.AddPlayer("Player 2")
+	// return acknowledgement
+	
+	// client called to start the game
+	g.InitializeGame()
+	g.RunGame()
+	// go g.RunGame()
+	// return acknowledgement
 }
 
 
