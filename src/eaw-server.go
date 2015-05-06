@@ -66,9 +66,17 @@ func main() {
 	
 	// client called to start the game
 	g.InitializeGame()
-	g.RunGame()
-	// go g.RunGame()
+	// g.RunGame()
+	
+	// We can't RunGame() in a goroutine until we know that the main function will
+	// not exit.
+	go g.RunGame()
 	// return acknowledgement
+	
+	
+	// is there a sleep function in go
+	select {}
+	
 }
 
 

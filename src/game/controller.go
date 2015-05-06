@@ -26,6 +26,15 @@ type Game struct {
 	sharedConsole bool
 }
 
+func (g Game) String() string {
+	return fmt.Sprint("{Id=",g.Id,", Players=",g.Players, ", NumPlayers=",g.NumPlayers,  
+		", Turns=",g.Turns, ", CurrentPlayer=",g.CurrentPlayer, 
+		", Territories=",g.Territories, ", TerrMap=",g.TerrMap, 
+		", PlaySequenceSource=",g.PlaySequenceSource, 
+		", nextPlayerIndex=",g.nextPlayerIndex, ", sharedConsole=",g.sharedConsole ,"}")
+}
+
+
 type play struct {
 	sequence int
 	attackFrom Territory
@@ -57,7 +66,7 @@ var games map[string] *Game = make(map[string] *Game)
 
 var gameIdSeq int = 0
 
-func (g Game) GetCurrentPlayer() Player {
+func (g *Game) GetCurrentPlayer() Player {
 	return g.CurrentPlayer
 }
 
@@ -77,10 +86,12 @@ func NewGame() *Game {
 	
 	// add to game map
 	games[g.Id] = &g
+	
+	util.Mainlog.Println("NewGame(): g=",g)
 	return &g
 }
 
-func (g Game) AddPlayer(name string) {
+func (g *Game) AddPlayer(name string) {
 	
 	// TODO if g.NumPlayers == maxNumberOfPlayers, we throw an error
 	if (g.NumPlayers == maxNumberOfPlayers) {
@@ -88,6 +99,7 @@ func (g Game) AddPlayer(name string) {
 		return
 	}
 	
+	// util.Mainlog.Println("AddPlayer(): adding player ", name, " to game ",g)
 	i := g.NumPlayers
 	g.NumPlayers++
 	
@@ -96,12 +108,15 @@ func (g Game) AddPlayer(name string) {
 	go util.ConsoleChannelIO(g.Players[i].UserChan)
 	
 	g.Players[i].Name = name
+
+	// util.Mainlog.Println("AddPlayer(): g=",g)
+
 	return
 }
 
 
 
-func (g Game) InitializeGame() {
+func (g *Game) InitializeGame() {
 	util.Mainlog.Println("game.InitializeGame()")
 
 	// indicate there is only one console being used
@@ -142,7 +157,7 @@ func (g Game) InitializeGame() {
 
 // Assign territories sequentially 
 // TODO this needs to become SelectTerritory such that the players get to pick
-func (g Game) AssignTerritories() {
+func (g *Game) AssignTerritories() {
 	util.Mainlog.Println("game.AssignTerritories()")
 	terr := g.Territories
 	
@@ -158,7 +173,7 @@ func (g Game) AssignTerritories() {
 	}
 }
 
-func (g Game) RunGame() {
+func (g *Game) RunGame() {
 	
 	util.Mainlog.Println("game.RunGame()")
 	util.Mainlog.Println("Running game", g)
@@ -176,9 +191,9 @@ func (g Game) RunGame() {
 	
 }
 
-func (g Game) ExecuteRound() {
+func (g *Game) ExecuteRound() {
 	
-	for pn := 0; pn < len(g.Players); pn++ {
+	for pn := 0; pn < g.NumPlayers; pn++ {
 		// start next player turn
 		g.StartTurn()
 		for g.beginAttackSequence() {
@@ -190,13 +205,13 @@ func (g Game) ExecuteRound() {
 	}
 }
 
-func (g Game) beginAttackSequence() bool {
+func (g *Game) beginAttackSequence() bool {
 	g.printTerritories()
 	return g.GetCurrentPlayer().Confirm("Do you want to attack?", "y")
 }
 
 // Initialize a new turn for the next player
-func (g Game) StartTurn() {
+func (g *Game) StartTurn() {
 	util.Mainlog.Println("game.StartTurn()")
 	g.nextPlayer()
 	util.Mainlog.Println("Starting turn for ", g.GetCurrentPlayer())
@@ -206,7 +221,7 @@ func (g Game) StartTurn() {
 	g.Turns.PushBack(&t)
 }
 
-func (g Game) EndTurn() {
+func (g *Game) EndTurn() {
 
 	util.Mainlog.Println("game.EndTurn()")
 	g.PutMessageAllPlayers("Ending turn for " + g.CurrentPlayer.Name + "\n")
@@ -215,18 +230,18 @@ func (g Game) EndTurn() {
 // TODO make players into a ring
 // FIXME it should return the next player instead of relying on module var
 // var nextPlayerIndex = 0
-func (g Game) nextPlayer() {
+func (g *Game) nextPlayer() {
 	util.Mainlog.Println("game.nextPlayer()")
 	g.CurrentPlayer = g.Players[g.nextPlayerIndex]
 	g.nextPlayerIndex++
-	if (g.nextPlayerIndex == len(g.Players)) {
+	if (g.nextPlayerIndex == g.NumPlayers) {
 		g.nextPlayerIndex = 0
 	}
 }
 
 // execute all aspects of one play cycle of the current turn
 // return -1 to force end of turn, otherwise return 0
-func (g Game) ExecutePlay() int {
+func (g *Game) ExecutePlay() int {
 	util.Mainlog.Println("game.ExecutePlay()")
 	
 	// get the current turn from end of turn list
@@ -310,7 +325,7 @@ func (g Game) ExecutePlay() int {
 
 // Let the current player select the attacking territory
 // from the set of territories owned by the current player
-func (g Game) SelectAttackingTerritory() Territory {
+func (g *Game) SelectAttackingTerritory() Territory {
 
 	util.Mainlog.Println("game.SelectAttackingTerritory()")
 	terr := g.Territories
@@ -362,7 +377,7 @@ func (g Game) SelectAttackingTerritory() Territory {
 // Let the current player select the defending territory
 // from the set of territories adjacent to the attacking territory
 // NOT owned by the current player.
-func (g Game) SelectDefendingTerritory(attackingTerr Territory) (*Territory, error) {
+func (g *Game) SelectDefendingTerritory(attackingTerr Territory) (*Territory, error) {
 
 	util.Mainlog.Println("game.SelectDefendingTerritory()")
 	terr := g.Territories
@@ -402,7 +417,7 @@ func (g Game) SelectDefendingTerritory(attackingTerr Territory) (*Territory, err
 }
 
 
-func (g Game) PrintTurns() {
+func (g *Game) PrintTurns() {
 	util.Mainlog.Println("game.PrintTurns()")
 		
 	for et := g.Turns.Front(); et != nil; et = et.Next() {
