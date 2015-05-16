@@ -116,7 +116,7 @@ In controller.go
 * [done] func (g Game) InitializeGame() - no args; assume state is a just-created Game object; load territories; assign territories
 * [done] func (g Game) GetCurrentPlayer() Player - no functional change
 * [done] func (g Game) AssignTerritories() - no functional change
-* func (g Game) StartGame() - new; run in goroutine; starts the game; confirms start of round; calls ExecuteRound
+* [done] func (g Game) StartGame() - new; run in goroutine; starts the game; confirms start of round; calls ExecuteRound
 * [done] func (g Game) ExecuteRound() - no functional change
 * [done] func (g Game) StartTurn() - no functional change
 * [done] func (g Game) beginAttackSequence() - no functional change
