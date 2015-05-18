@@ -20,51 +20,83 @@ import (
 	"log"
 	"game"
 	"util"
+    "github.com/gorilla/websocket"
+	"net/http"
+	"time"
 	"fmt"
-	"strconv"
+	// "strconv"
 )
 
+var upgrader = websocket.Upgrader{
+    ReadBufferSize:  1024,
+    WriteBufferSize: 1024,
+}
+ 
 
 /*
-	To start a new game and become the first player, the client should make the following REST call
+	To start a new game and become the first player, the user should point their browser to 
 
-	POST http://localhost:8080/eaw/game
+	GET http://localhost:8080/eaw/game
 
-	This returns a game ID and a player ID. The client is considered the first player.
+	This starts a new game and returns the game ID and a player ID. 
+	The response is a page that loads the game client.
+	The client is considered the first player.
 
 	{
 		"gameId": "0123456789abcdef",
 		"playerId": "0123456789abcdef"
 	}
+
+	The response also sets a session cookie that is specific to the game and player.
 
 */
 /*
-	To join a game, the client should make the following REST call
+	To join a game, the user points their browser to
 
-	POST http://localhost:8080/eaw/game/{game-id}/player
+	GET http://localhost:8080/eaw/player?game={game-id}
 
-	This returns a player ID that is specific to the game.
+	This creates a new player and a player ID that is specific to the game.
+	The response is a page that loads the game client.
+	The client is considered the new player.
 
 	{
 		"gameId": "0123456789abcdef",
 		"playerId": "0123456789abcdef"
 	}
+
+	The response also sets a session cookie that is specific to the game a player.
 
 */
 /*
 	Once a client has a game ID and player ID, it should open a Websocket and register.
 
+	ws://localhost:8080/eaw/ws
+	
 	Registration happens once and causes the server to connect the client Websocket 
 	to the player in the game via a channel being monitored in a goroutine.
+
+	The request should include the session cookie.
+
 */
 
 func main() {
-  http.HandleFunc("/echo", echoHandler)
-  http.Handle("/", http.FileServer(http.Dir(".")))
-  err := http.ListenAndServe(":8080", nil)
-  if err != nil {
-    panic("Error: " + err.Error())
-  }
+
+	util.LoadConfig()	
+
+	logFlags := log.Ldate | log.Lmicroseconds | log.Lshortfile
+	log.SetFlags(logFlags)
+	log.Println("Start eaw-server [test]")
+
+
+	http.HandleFunc("/eaw/game", newGameHandler)
+	http.HandleFunc("/eaw/player", addPlayerHandler)
+	http.HandleFunc("/eaw/ws", wsConnectHandler)
+
+	http.Handle("/", http.FileServer(http.Dir(".")))
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic("Error: " + err.Error())
+	}
 }
 
 
@@ -123,14 +155,89 @@ func main() {
 			expects a specific response.
 */
 
+// TODO remove this hack
+var gameId string
 
 
-func connectionHandler(w http.ResponseWriter, r *http.Request) {
+func newGameHandler(w http.ResponseWriter, r *http.Request) {
+ 
+ 	fmt.Println("newGameHandler()")
+ 	fmt.Println("r: ",r)
+
+	// TODO check if there is already a user session on the connection
+	
+	// No session - attach the connection to a game
+	// TODO assign a session to the connection
+	
+	
+	// Create new game and add player
+	var g *game.Game
+	g = game.NewGame()
+	g.AddPlayer("JoJo")
+	// return game ID to caller
+	gameId = g.Id
+	
+
+	// write a short-term cookie
+	expiration := time.Now().Add(1 * 24 * time.Hour)
+	cookie := http.Cookie{Name: "eaw-session", Value: "game="+g.Id+",player=JoJo", Expires: expiration}
+	http.SetCookie(w, &cookie)
+	
+	
+	// TEST redirect to /eaw-client.html
+	// TODO firgure out how to get game ID back to client
+	
+	http.Redirect(w, r, "/eaw-client.html", http.StatusFound)
+
+ 	fmt.Println("w: ",w)
+}
+
+
+func addPlayerHandler(w http.ResponseWriter, r *http.Request) {
+ 
+ 	fmt.Println("addPlayerHandler()")
+ 	fmt.Println("r: ",r)
+
+	err := r.ParseForm()
+    if err != nil {
+        panic("Error: " + err.Error())
+    }
+
+	fmt.Println("r.Form: ", r.Form)
+	
+	// TODO check if there is already a user session on the connection
+	cookie, _ := r.Cookie("eaw-session")
+	fmt.Println("cookie: ", cookie)
+	
+	// No session - attach the connection to a game
+	// TODO get player name into the request
+	// TODO extract the player name from the request
+	
+	// TODO assign a session to the connection
+	name := "KoKo"
+	expiration := time.Now().Add(1 * 24 * time.Hour)
+	eawCookie := http.Cookie{Name: "eaw-session", Value: "game="+gameId+",player="+name, 
+		Expires: expiration}
+	http.SetCookie(w, &eawCookie)
+	
+	// TEST redirect to /eaw-client.html
+	http.Redirect(w, r, "/eaw-client.html", http.StatusFound)
+
+ 	fmt.Println("w: ",w)
+}
+
+
+func wsConnectHandler(w http.ResponseWriter, r *http.Request) {
     conn, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
         panic("Error: " + err.Error())
     }
  
+ 	fmt.Println("wsConnectHandler()")
+ 	fmt.Println("r: ",r)
+	cookie, _ := r.Cookie("eaw-session")
+	fmt.Println("cookie: ", cookie)
+ 	fmt.Println("w: ",w)
  	fmt.Println("conn: ",conn)
 
 	// TODO check if there is already a user session on the connection
@@ -139,6 +246,8 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO assign a session to the connection
 	
 }
+
+
 
 
 // Run a very simple one-turn game.
