@@ -1,0 +1,52 @@
+<html>
+<head>
+<meta charset="UTF-8" />
+<script>
+        var serversocket = new WebSocket("ws://localhost:8080/eaw/ws");
+ 
+        serversocket.onopen = function() {
+                serversocket.send("Connection init");
+        }
+ 
+        // Write message on receive
+        serversocket.onmessage = function(e) {
+                document.getElementById('comms').innerHTML += "Received: " + e.data + "<br>";
+        };
+ 
+        function senddata() {
+                var data = document.getElementById('sendtext').value;
+                serversocket.send(data);
+                document.getElementById('comms').innerHTML += "Sent: " + data + "<br>";
+        }
+        function senddataarea() {
+                var data = document.getElementById('sendtextarea').value;
+                serversocket.send(data);
+                document.getElementById('comms').innerHTML += "Sent: " + data + "<br>";
+        }
+ 
+</script>
+</head>
+ 
+<body>
+        <input id="sendtext" type="text" />
+        <input type="button" id="sendBtn" value="send" onclick="senddata()"></input>
+        <textarea id="sendtextarea" rows="10" cols="30" >{
+  "array": [
+    1,
+    2,
+    3
+  ],
+  "boolean": true,
+  "null": null,
+  "number": 123,
+  "object": {
+    "a": "b",
+    "c": "d",
+    "e": "f"
+  },
+  "string": "Hello World"
+}</textarea>
+        <input type="button" id="sendBtn" value="sendarea" onclick="senddataarea()"></input>
+        <div id='comms'></div>
+</body>
+</html>
