@@ -239,6 +239,12 @@ func wsConnectHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("cookie: ", cookie)
  	fmt.Println("w: ",w)
  	fmt.Println("conn: ",conn)
+	
+	// TODO use eaw-session to get handle to game and player
+	
+	// TODO extract session data not available from conn
+	// and pass to keepListening
+	go keepListening(conn)
 
 	// TODO check if there is already a user session on the connection
 	
@@ -248,6 +254,46 @@ func wsConnectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+func keepListening(conn *websocket.Conn) {
+	
+	// loop forever
+    for {
+        messageType, p, err := conn.ReadMessage()
+        if err != nil {
+            return
+        }
+		
+		switch (messageType) {
+			
+		case websocket.BinaryMessage:
+			print_binary(p)
+		
+		case websocket.TextMessage:
+			fmt.Printf("Received text: %s\n", string(p))
+			
+		default:
+			fmt.Printf("Received message type %d\n", messageType)
+			
+		}
+		
+        // print_binary(p)
+ 
+        err = conn.WriteMessage(messageType, p);
+        if  err != nil {
+            return
+        }
+    }
+	
+}
+
+
+func print_binary(s []byte) {
+  fmt.Printf("Received b:");
+  for n := 0;n < len(s);n++ {
+    fmt.Printf("%d,",s[n]);
+  }
+  fmt.Printf("\n");
+}
 
 
 // Run a very simple one-turn game.

@@ -9,8 +9,11 @@
         }
  
         // Write message on receive
-        serversocket.onmessage = function(e) {
-                document.getElementById('comms').innerHTML += "Received: " + e.data + "<br>";
+        serversocket.onmessage = function(m) {
+                var e = document.getElementById('comms');
+				e.innerHTML += "Received: " + m.data + "<br>";
+				e.scrollTop = e.scrollHeight;
+				putLiteralQuestion();
         };
  
         function senddata() {
@@ -18,19 +21,63 @@
                 serversocket.send(data);
                 document.getElementById('comms').innerHTML += "Sent: " + data + "<br>";
         }
-        function senddataarea() {
-                var data = document.getElementById('sendtextarea').value;
+        function sendpick() {
+				var radios = document.getElementsByName('pickTerritory');
+				var data
+				for (var i = 0, length = radios.length; i < length; i++) {
+				    if (radios[i].checked) {
+				        // do whatever you want with the checked radio
+				        data = radios[i].value;
+
+				        // only one radio can be logically checked, don't check the rest
+				        break;
+				    }
+				}
                 serversocket.send(data);
                 document.getElementById('comms').innerHTML += "Sent: " + data + "<br>";
         }
+		function putRadioQuestion() {
+			var d = "<div>Please select a territory</div><form><input name='pickTerritory' type='radio' value='1' checked>1. Stupidia</input><br><input name='pickTerritory' type='radio' value='2'>2. Felaria</input><br><br><input type='button' id='sendBtn2' value='Submit' onclick='sendpick()'></input></form>";
+			document.getElementById("question").innerHTML = d;
+		}
+		function putLiteralQuestion() {
+			var d = "<pre>Please select a territory\n1. Stupidia\n2. Felaria\n\n</pre>";
+			document.getElementById("question").innerHTML = d;
+			d = '<input id="sendtext" type="text" /><input type="button" id="sendBtn" value="Send" onclick="senddata()"></input>';
+			document.getElementById("question").innerHTML += d;
+		}
  
 </script>
+		
+<style>
+h1 {color:red;}
+p {color:blue;}
+
+div#comms {
+	color:blue; 
+	overflow-y:scroll;
+	border:1px solid black;
+	width:90vw; height:30vh;
+}
+</style>
+
 </head>
  
 <body>
-        <input id="sendtext" type="text" />
-        <input type="button" id="sendBtn" value="send" onclick="senddata()"></input>
-        <textarea id="sendtextarea" rows="10" cols="30" >{
+	<br>
+	<div id="question" style="question">
+	</div>
+
+	<div id="game_state"></div>
+	
+	<div id="player_status"></div>
+
+
+	<br><br>
+	<input id="sendtext" type="text" />
+	<input type="button" id="sendBtn" value="Send" onclick="senddata()"></input>
+	
+	<textarea id="sendtextarea" rows="10" cols="30" >{
   "array": [
     1,
     2,
@@ -47,6 +94,8 @@
   "string": "Hello World"
 }</textarea>
         <input type="button" id="sendBtn" value="sendarea" onclick="senddataarea()"></input>
-        <div id='comms'></div>
+		
+		<br>
+        <div id='comms' style="comms">Fixed text<br></div>
 </body>
 </html>
