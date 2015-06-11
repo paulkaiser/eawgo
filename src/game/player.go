@@ -5,11 +5,18 @@ import (
 	"fmt"
 	// "log"
 	"strings"
+	"github.com/gorilla/websocket"
 )
 
 type Player struct {
 	Name string
+	
+	// The Game will use this channel to communicate to the player
 	UserChan util.MessageChannel  // try to hide channel type
+
+	// for use in HTML client. If this is nil when the channel IO handler is started,
+	// the handler assumes use of the console.
+	WSConn *Conn
 }
 
 func (p Player) String() string {

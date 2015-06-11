@@ -3,11 +3,12 @@ package util
 import (
 	"fmt"
 	// "log"
+	"github.com/gorilla/websocket"
 )
 
 
 // write a string prompt to stdout and read string input from stdin
-func WebsocketChannelIO(ch MessageChannel) {
+func WebsocketChannelIO(ch MessageChannel, conn *Conn) {
 	
 	Mainlog.Println("Started ConsoleChannelIO on channel",ch)
 	
@@ -18,8 +19,15 @@ func WebsocketChannelIO(ch MessageChannel) {
 		// Mainlog.Println("reading channel",ch)
 		chanMsg = <-ch
 		
-		// TODO put log level wrapper around log package
-		// Mainlog.Println("request:",chanMsg)
+		// TODO define message structure; 
+		// start with default JSON rendering of ChannelMessage
+		// Use Conn.WriteJSON(chanMsg)
+		
+		// TODO if the channel message type is MSG_TYPE_REQ, issue a 
+		// Conn.ReadJSON()
+		// HTML client must send JSON that aligns to ChannelMessage
+		
+
 		msg := chanMsg.promptText
 		def := chanMsg.defaultText
 		
