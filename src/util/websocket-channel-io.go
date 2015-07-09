@@ -2,14 +2,13 @@ package util
 
 import (
 	"fmt"
-	// "log"
-	"github.com/gorilla/websocket"
+    . "github.com/gorilla/websocket"
 )
 
 
 // write a string prompt to stdout and read string input from stdin
 func WebsocketChannelIO(ch MessageChannel, conn *Conn) {
-	
+		
 	Mainlog.Println("Started ConsoleChannelIO on channel",ch)
 	
 	for {

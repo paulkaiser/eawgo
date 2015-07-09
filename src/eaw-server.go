@@ -228,6 +228,10 @@ func addPlayerHandler(w http.ResponseWriter, r *http.Request) {
 
 
 func wsConnectHandler(w http.ResponseWriter, r *http.Request) {
+	
+	var Conn *conn
+	var err error
+	
     conn, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
         panic("Error: " + err.Error())
